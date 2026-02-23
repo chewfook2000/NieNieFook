@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>牛牛计算器</title>
+</head>
+
+<body style="background:#0b172a;color:white;text-align:center;font-family:Arial">
+
+<h1>🐂 牛牛计算器</h1>
+
+<p id="result">输入5张牌</p>
+
+<button onclick="add(1)">A</button>
+<button onclick="add(2)">2</button>
+<button onclick="add(3)">3</button>
+<button onclick="add(4)">4</button>
+<button onclick="add(5)">5</button>
+<button onclick="add(6)">6</button>
+<button onclick="add(7)">7</button>
+<button onclick="add(8)">8</button>
+<button onclick="add(9)">9</button>
+<button onclick="add(10)">10</button>
+
+<br><br>
+
+<button onclick="reset()">清空</button>
+
+<script>
+
+let cards=[]
+
+function add(n){
+
+if(cards.length>=5) return
+
+cards.push(n)
+
+document.getElementById("result").innerText=cards.join(",")
+
+}
+
+function reset(){
+
+cards=[]
+
+document.getElementById("result").innerText="输入5张牌"
+
+}
+
+</script>
+
+</body>
+</html>
