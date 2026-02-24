@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AI 牛懒计算器</title>
+<title>AI 牛懒计算器2.0</title>
 
 <style>
 
 body{
-background:#0f172a;
+background:#020617;
 color:white;
 font-family:Arial;
 text-align:center;
@@ -19,12 +19,11 @@ margin:0;
 header{
 padding:18px;
 font-size:26px;
-font-weight:bold;
-background:#111827;
+background:#0f172a;
 }
 
 .container{
-max-width:500px;
+max-width:520px;
 margin:auto;
 padding:20px;
 }
@@ -33,16 +32,17 @@ padding:20px;
 display:flex;
 justify-content:center;
 gap:10px;
-margin:20px 0;
 flex-wrap:wrap;
+margin:20px 0;
+min-height:100px;
 }
 
 .card{
 background:white;
 color:black;
-width:60px;
-height:80px;
-border-radius:10px;
+width:65px;
+height:90px;
+border-radius:12px;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -50,17 +50,22 @@ font-size:22px;
 font-weight:bold;
 }
 
+.ten{
+background:#facc15;
+}
+
 .result{
-font-size:34px;
+font-size:36px;
 color:#facc15;
 margin:10px 0;
 }
 
 .ai{
-background:#020617;
-padding:15px;
+border:1px solid #334155;
+padding:14px;
 border-radius:10px;
 margin-top:10px;
+color:#94a3b8;
 }
 
 .grid{
@@ -94,14 +99,14 @@ flex:1;
 
 <body>
 
-<header>🤖 AI 牛懒计算器</header>
+<header>🤖 AI 牛懒计算器2.0</header>
 
 <div class="container">
 
 <div class="cards" id="cards"></div>
 
 <div class="result" id="result">
-输入5张牌
+输入3或5张牌
 </div>
 
 <div class="ai" id="aiBox">
@@ -111,7 +116,7 @@ AI分析等待中...
 <div class="grid" id="keys"></div>
 
 <div class="control">
-<button onclick="del()">删除</button>
+<button onclick="delCard()">删除</button>
 <button onclick="reset()">重置</button>
 </div>
 
@@ -119,7 +124,7 @@ AI分析等待中...
 
 <script>
 
-/* 按钮 */
+/* 牌 */
 
 const values=[
 "A","2","3","4","5","6","7","8","9",
@@ -135,266 +140,314 @@ const keys=document.getElementById("keys")
 
 values.forEach(v=>{
 let b=document.createElement("button")
-b.innerText=v
-b.onclick=()=>add(v)
+b.textContent=v
+b.onclick=()=>addCard(v)
 keys.appendChild(b)
 })
 
-function render(arr){
+/* 渲染 */
+
+function render(list){
+
 cardsDiv.innerHTML=""
 
-arr.forEach(c=>{
+list.forEach(c=>{
 let d=document.createElement("div")
 d.className="card"
-d.innerText=c
+d.textContent=c
 cardsDiv.appendChild(d)
 })
+
 }
 
-function add(v){
-if(cards.length>=5) return
+function renderCombo(top,bottom){
+
+cardsDiv.innerHTML=""
+
+top.forEach(c=>{
+let d=document.createElement("div")
+d.className="card"
+d.textContent=c
+cardsDiv.appendChild(d)
+})
+
+let br=document.createElement("div")
+br.style.width="100%"
+cardsDiv.appendChild(br)
+
+bottom.forEach(c=>{
+let d=document.createElement("div")
+d.className="card ten"
+d.textContent=c
+cardsDiv.appendChild(d)
+})
+
+}
+
+/* 操作 */
+
+function addCard(v){
+
+if(cards.length===5) return
+
 cards.push(v)
+
 render(cards)
+
 calc()
+
 }
 
-function del(){
+function delCard(){
+
 cards.pop()
+
 render(cards)
+
+calc()
+
 }
 
 function reset(){
+
 cards=[]
-render(cards)
-result.innerText="输入5张牌"
-aiBox.innerText="AI分析等待中..."
+cardsDiv.innerHTML=""
+result.textContent="输入3或5张牌"
+aiBox.textContent="AI分析等待中..."
+
 }
 
 /* 牌值 */
 
 function val(v){
+
 if(v==="A"||v==="♠A") return 1
-if(v==="J"||v==="Q"||v==="K") return 10
+if(["J","Q","K"].includes(v)) return 10
+
 return parseInt(v)
-}
-
-/* 3 / 6 变牌 */
-
-function variants(arr){
-
-let res=[arr]
-
-for(let i=0;i<arr.length;i++){
-
-if(arr[i]===3||arr[i]===6){
-
-let temp=[]
-
-res.forEach(r=>{
-
-let a=[...r]
-let b=[...r]
-
-a[i]=3
-b[i]=6
-
-temp.push(a)
-temp.push(b)
-
-})
-
-res=temp
 
 }
 
-}
+/* 三张赔率 */
 
-return res
-}
+function odds3(cards,best){
 
-/* 算牛 */
+let face=cards.filter(c=>["J","Q","K"].includes(c))
 
-function score(nums){
+if(face.length===3) return 2
+if(best===10) return 2
+if(best>0) return 1
 
-for(let i=0;i<3;i++){
-for(let j=i+1;j<4;j++){
-for(let k=j+1;k<5;k++){
-
-let s=nums[i]+nums[j]+nums[k]
-
-if(s%10===0){
-
-let rest=0
-
-for(let x=0;x<5;x++){
-if(x!==i&&x!==j&&x!==k){
-rest+=nums[x]
-}
-}
-
-let n=rest%10
-
-return {
-value:n===0?10:n,
-combo:[i,j,k]
-}
-
-}
-}
-}
-}
-
-return {value:0}
+return 0
 
 }
 
-/* 赔率 */
+/* 五张赔率 */
 
-function getOdds(cards,best){
+function odds5(cards,best,combo){
 
 let count={}
-
 cards.forEach(c=>{
 count[c]=(count[c]||0)+1
 })
 
-/* 五公 */
-
 let face=cards.filter(c=>["J","Q","K"].includes(c))
 if(face.length===5) return 5
-
-/* 四条 */
 
 for(let k in count){
 if(count[k]===4) return 4
 }
 
-/* 黑桃A + JQK */
-
 if(cards.includes("♠A")){
-let ok=cards.some(c=>["J","Q","K"].includes(c))
-if(ok) return 3
+if(cards.some(c=>["J","Q","K"].includes(c))) return 3
 }
 
-/* 牛牛 */
+let top=cards.filter((c,i)=>!combo.includes(i))
+let f=top.filter(c=>["J","Q","K"].includes(c)).length
+if(f>=3) return 3
 
 if(best===10) return 2
-
-/* 牛1-9 */
-
 if(best>0) return 1
 
 return 0
-}
-
-/* 排牌 */
-
-function layoutCards(top,bottom){
-
-cardsDiv.innerHTML=""
-
-/* 上面 */
-
-top.forEach(c=>{
-let d=document.createElement("div")
-d.className="card"
-d.innerText=c
-cardsDiv.appendChild(d)
-})
-
-let br=document.createElement("div")
-br.style.flexBasis="100%"
-cardsDiv.appendChild(br)
-
-/* 下面 */
-
-bottom.forEach(c=>{
-let d=document.createElement("div")
-d.className="card"
-d.innerText=c
-cardsDiv.appendChild(d)
-})
 
 }
+
+/* 生成 3/6 变牌 */
+
+function generateVariants(nums){
+
+let res=[[]]
+
+nums.forEach(n=>{
+
+let temp=[]
+
+res.forEach(r=>{
+
+if(n===3 || n===6){
+
+temp.push([...r,3])
+temp.push([...r,6])
+
+}else{
+
+temp.push([...r,n])
+
+}
+
+})
+
+res=temp
+
+})
+
+return res
+
+}
+
+/* 五张算牛 */
+
+function score(nums){
+
+let best=0
+let bestCombo=null
+
+let variants=generateVariants(nums)
+
+variants.forEach(arr=>{
+
+for(let i=0;i<3;i++){
+for(let j=i+1;j<4;j++){
+for(let k=j+1;k<5;k++){
+
+let sum=arr[i]+arr[j]+arr[k]
+
+if(sum%10===0){
+
+let rest=[]
+
+for(let x=0;x<5;x++){
+if(x!==i&&x!==j&&x!==k){
+rest.push(arr[x])
+}
+}
+
+let n=(rest[0]+rest[1])%10
+if(n===0) n=10
+
+if(n>best){
+best=n
+bestCombo=[i,j,k]
+}
+
+}
+
+}
+}
+}
+
+})
+
+return {value:best,combo:bestCombo}
+
+}
+
+/* 主计算 */
 
 function calc(){
 
-if(cards.length!==5) return
-
 let nums=cards.map(val)
 
-let all=variants(nums)
+/* 少于3张 */
 
-let best=0
-let bestData=null
+if(cards.length<3){
 
-all.forEach(v=>{
-let r=score(v)
-if(r.value>best){
-best=r.value
-bestData={nums:v,info:r}
+aiBox.textContent="AI观察中..."
+return
+
 }
-})
 
-let odds=getOdds(cards,best)
+/* 三张 */
 
-/* 排牌 */
+if(cards.length===3){
 
-if(bestData){
+let sum=nums[0]+nums[1]+nums[2]
+let best=sum%10
+if(best===0) best=10
 
-let combo=bestData.info.combo
+let odds=odds3(cards,best)
+
+let name=""
+
+if(best===0) name="没牛"
+else if(best===10) name="🐂 牛牛"
+else name="牛 "+best
+
+result.textContent=name+" (赔率 "+odds+"倍)"
+
+aiBox.textContent="AI正在分析..."
+
+return
+
+}
+
+/* 四张 */
+
+if(cards.length===4){
+
+aiBox.textContent="等待最后一张牌..."
+
+return
+
+}
+
+/* 五张 */
+
+if(cards.length===5){
+
+let r=score(nums)
+
+let best=r.value
+let combo=r.combo
+
+if(best===0){
+
+render(cards)
+
+result.textContent="没牛 (赔率 0倍)"
+
+aiBox.textContent="AI已重新计算"
+
+return
+
+}
 
 let top=[]
 let bottom=[]
 
 for(let i=0;i<5;i++){
 
-if(combo.includes(i)){
-bottom.push(cards[i])
-}else{
-top.push(cards[i])
-}
+if(combo.includes(i)) bottom.push(cards[i])
+else top.push(cards[i])
 
 }
 
-layoutCards(top,bottom)
+renderCombo(top,bottom)
 
-/* AI */
-
-let a=bestData.nums[combo[0]]
-let b=bestData.nums[combo[1]]
-let c=bestData.nums[combo[2]]
-
-aiBox.innerHTML=
-"AI最佳组合<br>"+
-a+" + "+b+" + "+c+" = "+(a+b+c)
-
-}
-
-/* 名字 */
+let odds=odds5(cards,best,combo)
 
 let name=""
 
-if(best===0){
-name="没牛"
-}
-else if(odds===5){
-name="🐂 五牛"
-}
-else if(odds===3 && best===1){
-name="🍄 牛冬菇"
-}
-else if(best===10){
-name="🐂 牛牛"
-}
-else{
-name="牛 "+best
-}
+if(odds===5) name="🐂 五牛"
+else if(odds===3 && best===1) name="🍄 牛冬菇"
+else if(best===10) name="🐂 牛牛"
+else name="牛 "+best
 
-result.innerText=name
+result.textContent=name+" (赔率 "+odds+"倍)"
 
-if(odds>0){
-result.innerText+=" (赔率 "+odds+"倍)"
+aiBox.textContent="AI已重新计算五张牌"
+
 }
 
 }
